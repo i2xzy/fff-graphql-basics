@@ -2,12 +2,10 @@ import { gql } from 'apollo-server';
 
 export default gql`
   type Mutation {
-    root: String
-    createUser(data: UserInput): MutationResponse
-    updateUser(id: ID!, data: UserInput): MutationResponse
-
-    # upsertClade(id: ID, data: JSON): ID
-    # login(email: String): String # token
+    addClade(data: CladeInput!): MutationResponse
+    updateClade(id: ID!, data: CladeInput!): MutationResponse
+    moveClade(id: ID!, newParentId: ID!): MutationResponse
+    deleteClade(id: ID!): MutationResponse
   }
 
   type MutationResponse {

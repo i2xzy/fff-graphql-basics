@@ -1,25 +1,30 @@
 import { ApolloServer } from 'apollo-server';
+import SparqlClient from 'sparql-http-client/ParsingClient';
 import typeDefs from './types';
 import resolvers from './resolvers';
 
 import TreeAPI from './data/tree';
-import UserAPI from './data/user';
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ req }) => ({
-    token: req.headers.authorization || ''
+    token: req.headers.authorization || '',
   }),
   dataSources: () => ({
     treeAPI: new TreeAPI(),
-    userAPI: new UserAPI()
+    sparqlClient: new SparqlClient({
+      endpointUrl:
+        'http://85.214.211.33:9999/blazegraph/namespace/pep_test_repo/sparql',
+      updateUrl:
+        'http://85.214.211.33:9999/blazegraph/namespace/pep_test_repo/sparql',
+    }),
   }),
   engine: {
-    apiKey: process.env.ENGINE_API_KEY
+    apiKey: process.env.ENGINE_API_KEY,
   },
   introspection: true,
-  playground: true
+  playground: true,
 });
 
 server.listen({ port: process.env.PORT || 4000 }).then(({ url }) => {

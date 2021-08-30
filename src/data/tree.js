@@ -28,7 +28,19 @@ class TreeAPI extends RESTDataSource {
       name: value,
       // include_suppressed: true,
     });
-    return response.map((result) => this.searchResultReducer(result));
+    return response.map(result => this.searchResultReducer(result));
+  }
+
+  async mrca({ clade1, clade2 }) {
+    const response = await this.post('tree_of_life/mrca', {
+      node_ids: [clade1, clade2],
+    });
+    console.log(response);
+    const taxon = response.mrca.taxon || response.nearest_taxon;
+    return {
+      id: taxon.ott_id,
+      name: taxon.name,
+    };
   }
 
   cladeReducer(clade) {
@@ -43,9 +55,9 @@ class TreeAPI extends RESTDataSource {
       leaves: clade.num_tips,
       hasChildren: clade.num_tips > 0,
       children:
-        clade.children && clade.children.map((node) => this.cladeReducer(node)),
+        clade.children && clade.children.map(node => this.cladeReducer(node)),
       lineage:
-        clade.lineage && clade.lineage.map((node) => this.cladeReducer(node)),
+        clade.lineage && clade.lineage.map(node => this.cladeReducer(node)),
       parentId: clade.lineage && clade.lineage[0] && clade.lineage[0].node_id,
       extant: !(clade.flags && clade.flags.includes('extinct')),
     };

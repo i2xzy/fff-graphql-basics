@@ -5,11 +5,20 @@ export default gql`
     tree(id: ID, depth: Int): Clade
     clade(id: ID!): Clade
     search(value: String!): [SearchResult]
-    users: [User]
-    user(id: ID!): User
+    mrca(clade1: String!, clade2: String!): MrcaResult
+
+    # sparql
+    tree2(id: ID, depth: Int): Clade
+    search2(value: String!): [SearchResult]
+    mrca2(clade1: String!, clade2: String!): MrcaResult
   }
 
   type SearchResult {
+    id: ID
+    name: String
+  }
+
+  type MrcaResult {
     id: ID
     name: String
   }

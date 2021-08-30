@@ -21,7 +21,9 @@
     "apollo-datasource-rest": "^0.6.9",
     "apollo-server": "^2.14.2",
     "dotenv": "^8.2.0",
-    "esm": "^3.2.25"
+    "esm": "^3.2.25",
+    "lodash": "^4.17.21",
+    "sparql-http-client": "^2.4.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.1"
