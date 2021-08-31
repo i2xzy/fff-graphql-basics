@@ -48,18 +48,20 @@ class TreeAPI extends RESTDataSource {
       ? clade.taxon.name
       : clade.descendant_name_list && clade.descendant_name_list.join(' and ');
     return {
-      ...clade,
-      ...clade.taxon,
       name,
-      id: clade.node_id,
-      leaves: clade.num_tips,
-      hasChildren: clade.num_tips > 0,
+      attributes: {
+        ...clade,
+        ...clade.taxon,
+        id: clade.node_id,
+        leaves: clade.num_tips,
+        hasChildren: clade.num_tips > 0,
+        lineage:
+          clade.lineage && clade.lineage.map(node => this.cladeReducer(node)),
+        parentId: clade.lineage && clade.lineage[0] && clade.lineage[0].node_id,
+        extant: !(clade.flags && clade.flags.includes('extinct')),
+      },
       children:
         clade.children && clade.children.map(node => this.cladeReducer(node)),
-      lineage:
-        clade.lineage && clade.lineage.map(node => this.cladeReducer(node)),
-      parentId: clade.lineage && clade.lineage[0] && clade.lineage[0].node_id,
-      extant: !(clade.flags && clade.flags.includes('extinct')),
     };
   }
 

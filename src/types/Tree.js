@@ -16,23 +16,21 @@ export default gql`
     attributes: [AttributeInput]
   }
 
-  type Attribute {
-    name: String
-    value: Boolean
-  }
-
-  type Clade {
+  type Attributes {
     id: ID
-    name: String
     rank: String
     extant: Boolean
-    children: [Clade]
     hasChildren: Boolean
     leaves: Int
     synonyms: [String]
     lineage: [Clade]
     parentId: ID
     source: [String]
-    attributes: [Attribute]
+  }
+
+  type Clade {
+    name: String
+    children: [Clade]
+    attributes: Attributes
   }
 `;
