@@ -19,7 +19,7 @@
   "homepage": "https://github.com/i2xzy/phylogeny-graphql-server#readme",
   "dependencies": {
     "apollo-datasource-rest": "^0.6.9",
-    "apollo-server": "^2.14.2",
+    "apollo-server": "^2.25.3",
     "dotenv": "^8.2.0",
     "esm": "^3.2.25"
   },
