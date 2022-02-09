@@ -16,10 +16,13 @@ class TreeAPI extends RESTDataSource {
   }
 
   async getClade({ id }) {
+    console.log({ id });
     const response = await this.post('tree_of_life/node_info', {
       node_id: id,
       include_lineage: true,
     });
+    console.log(response);
+
     return this.cladeReducer(response);
   }
 
@@ -58,7 +61,7 @@ class TreeAPI extends RESTDataSource {
         lineage:
           clade.lineage && clade.lineage.map(node => this.cladeReducer(node)),
         parentId: clade.lineage && clade.lineage[0] && clade.lineage[0].node_id,
-        extant: !(clade.flags && clade.flags.includes('extinct')),
+        extant: !clade.extinct,
       },
       children:
         clade.children && clade.children.map(node => this.cladeReducer(node)),

@@ -12,54 +12,51 @@ const tree2Resolver = async (_, { id: rootId }, { dataSources }) => {
   const getClade = async id => {
     const QUERY_CLADE = `
       ${PREFIXES}
-      SELECT ?id ?name ?source ?hasChildren ?children ?isFlying ?parentId
+      SELECT ?id ?name ?hasChildren ?children ?parentId
       WHERE {
         ?s peps:id ?id ;
            skos:prefLabel ?name ;
            rdfs:subClassOf/peps:id ?parentId .
-        OPTIONAL { ?s peps:rank/skos:prefLabel ?rank . }
-        OPTIONAL { ?s peps:source ?source . }
-        OPTIONAL { ?s peps:isFlying ?isFlyingOptional . }
         OPTIONAL { ?s ^rdfs:subClassOf/peps:id ?children . }
         BIND ('${id}' AS ?id)
         BIND (bound(?children) AS ?hasChildren)
-        BIND ( IF (bound(?isFlyingOptional), ?isFlyingOptional, 'false') as ?isFlying)
       }
   `;
 
     return dataSources.sparqlClient.query.select(QUERY_CLADE);
   };
 
-  const bindings = await getClade(rootId);
-
-  console.log(bindings);
-
-  if (!bindings || !bindings.length) return null;
+  // console.log(bindings);
 
   // const isTooFar = true;
 
-  const cladeReducer = async clade => {
+  const cladeReducer = depth => async rootId => {
+    const clade = await getClade(rootId);
+    if (!clade || !clade.length) return null;
+
     return clade.reduce((acc, item) => {
+      console.log({ depth });
       // console.log({ item });
       return {
         ...acc,
-        id: item.id.value,
         name: item.name.value,
-        hasChildren: item.hasChildren.value === 'true',
-        parentId: item.parentId.value,
-        attributes: [
-          { name: 'isFlying', value: item.isFlying.value === 'true' },
-        ],
-        source: uniq([...(acc.source || []), item.source.value]),
-        children: uniqBy(
-          [...(acc.children || []), { id: item.children.value }],
-          'id'
-        ),
+        attributes: {
+          id: item.id.value,
+          hasChildren: item.hasChildren.value === 'true',
+          parentId: item.parentId.value,
+        },
+        children:
+          depth > 2 || item.hasChildren.value === 'false'
+            ? null
+            : [
+                ...(acc.children || []),
+                cladeReducer(depth + 1)(item.children.value),
+              ],
       };
     }, {});
   };
 
-  const result = await cladeReducer(bindings);
+  const result = await cladeReducer(0)(rootId);
 
   // console.log({ result });
 

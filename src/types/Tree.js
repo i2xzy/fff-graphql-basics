@@ -28,9 +28,29 @@ export default gql`
     source: [String]
   }
 
-  type Clade {
+  type Node {
     name: String
-    children: [Clade]
+    children: [Node]
     attributes: Attributes
+  }
+
+  type Characteristic {
+    name: String
+    value: String
+  }
+
+  type Clade {
+    id: ID
+    name: String
+    rank: String
+    extant: Boolean
+    hasChildren: Boolean
+    leaves: Int
+    synonyms: [String]
+    lineage: [Clade]
+    parentId: ID
+    source: [String]
+    imageUrl: String
+    characteristics: [Characteristic]
   }
 `;
