@@ -28,6 +28,7 @@
     "dotenv": "^8.2.0",
     "esm": "^3.2.25",
     "lodash": "^4.17.21",
+    "ncp": "^2.0.0",
     "sparql-http-client": "^2.4.0"
   },
   "devDependencies": {
