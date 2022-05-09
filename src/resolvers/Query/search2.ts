@@ -1,6 +1,6 @@
 import { PREFIXES } from '../../lib/sparql-queries';
 
-const search2Resolver = async (_, { value }, { dataSources }) => {
+const search2Resolver = async (_, { value }, { sparqlClient }) => {
   console.log('search2');
   console.log({ value });
 
@@ -9,13 +9,14 @@ const search2Resolver = async (_, { value }, { dataSources }) => {
     SELECT ?id ?name
     WHERE {
       ?s peps:id ?id ;
+         rdfs:subClassOf ?parent ;
          skos:prefLabel ?name ;
-      FILTER regex(?name, "^${value}}", "i")
+      FILTER regex(?name, "^${value}", "i")
     }
     LIMIT 10
   `;
 
-  const bindings = await dataSources.sparqlClient.query.select(QUERY_CLADE);
+  const bindings = await sparqlClient.query.select(QUERY_CLADE);
 
   if (!bindings || !bindings.length) return null;
 

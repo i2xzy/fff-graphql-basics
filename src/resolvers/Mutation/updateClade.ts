@@ -1,6 +1,6 @@
 import { PREFIXES } from '../../lib/sparql-queries';
 
-const updateCladeResolver = async (_, { id, data }, { dataSources }) => {
+const updateCladeResolver = async (_, { id, data }, { sparqlClient }) => {
   console.log('updateClade');
   console.log(data);
 
@@ -20,7 +20,7 @@ const updateCladeResolver = async (_, { id, data }, { dataSources }) => {
     } 
   `;
 
-  const response = await dataSources.sparqlClient.query.update(QUERY);
+  const response = await sparqlClient.query.update(QUERY);
   console.log({ response });
 
   return { success: true };

@@ -11,8 +11,9 @@ class TreeAPI extends RESTDataSource {
       node_id: id,
       format: 'arguson',
       height_limit: depth,
+      include_lineage: true,
     });
-    return this.cladeReducer(response.arguson);
+    return this.nodeReducer(response.arguson);
   }
 
   async getClade({ id }) {
@@ -20,6 +21,7 @@ class TreeAPI extends RESTDataSource {
       node_id: id,
       include_lineage: true,
     });
+    console.log(response);
     return this.cladeReducer(response);
   }
 
@@ -35,7 +37,6 @@ class TreeAPI extends RESTDataSource {
     const response = await this.post('tree_of_life/mrca', {
       node_ids: [clade1, clade2],
     });
-    console.log(response);
     const taxon = response.mrca.taxon || response.nearest_taxon;
     return {
       id: taxon.ott_id,
@@ -48,20 +49,35 @@ class TreeAPI extends RESTDataSource {
       ? clade.taxon.name
       : clade.descendant_name_list && clade.descendant_name_list.join(' and ');
     return {
+      ...clade,
+      ...clade.taxon,
+      name,
+      id: clade.node_id,
+      sources: clade.taxon?.tax_sources,
+      leaves: clade.num_tips,
+      hasChildren: clade.num_tips > 0,
+      lineage:
+        clade.lineage && clade.lineage.map(node => this.cladeReducer(node)),
+      parentId: clade.lineage && clade.lineage[0] && clade.lineage[0].node_id,
+      extant: !(clade.flags && clade.flags.includes('extinct')),
+    };
+  }
+
+  nodeReducer(clade) {
+    const name = clade.taxon
+      ? clade.taxon.name
+      : clade.descendant_name_list && clade.descendant_name_list.join(' and ');
+    return {
+      id: clade.node_id,
       name,
       attributes: {
-        ...clade,
-        ...clade.taxon,
         id: clade.node_id,
-        leaves: clade.num_tips,
         hasChildren: clade.num_tips > 0,
-        lineage:
-          clade.lineage && clade.lineage.map(node => this.cladeReducer(node)),
-        parentId: clade.lineage && clade.lineage[0] && clade.lineage[0].node_id,
         extant: !(clade.flags && clade.flags.includes('extinct')),
+        lineage: clade.lineage && clade.lineage.map(node => node.node_id),
       },
       children:
-        clade.children && clade.children.map(node => this.cladeReducer(node)),
+        clade.children && clade.children.map(node => this.nodeReducer(node)),
     };
   }
 

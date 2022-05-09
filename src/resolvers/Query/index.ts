@@ -1,6 +1,7 @@
 import tree2 from './tree2';
 import search2 from './search2';
 import mrca2 from './mrca2';
+import cladeResolver from './clade';
 
 export default {
   tree: (_, { id, depth }, { dataSources }) =>
@@ -12,6 +13,7 @@ export default {
     dataSources.treeAPI.mrca({ clade1, clade2 }),
 
   tree2,
+  clade2: cladeResolver,
   search2,
   mrca2,
 };

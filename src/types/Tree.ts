@@ -16,7 +16,33 @@ export default gql`
     attributes: [AttributeInput]
   }
 
+  type Characteristic {
+    name: String
+    value: Boolean
+  }
+
   type Attributes {
+    id: ID
+    rank: String
+    extant: Boolean
+    hasChildren: Boolean
+    leaves: Int
+    synonyms: [String]
+    lineage: [String]
+    parentId: ID
+    sources: [String]
+    characteristics: [Characteristic]
+  }
+
+  type Node {
+    id: ID
+    name: String
+    children: [Node]
+    attributes: Attributes
+  }
+
+  type Clade {
+    name: String
     id: ID
     rank: String
     extant: Boolean
@@ -25,12 +51,8 @@ export default gql`
     synonyms: [String]
     lineage: [Clade]
     parentId: ID
-    source: [String]
-  }
-
-  type Clade {
-    name: String
-    children: [Clade]
-    attributes: Attributes
+    sources: [String]
+    characteristics: [Characteristic]
+    imageUrl: String
   }
 `;

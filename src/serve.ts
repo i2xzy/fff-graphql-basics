@@ -10,15 +10,15 @@ const server = new ApolloServer({
   resolvers,
   context: ({ req }) => ({
     token: req.headers.authorization || '',
-  }),
-  dataSources: () => ({
-    treeAPI: new TreeAPI(),
     sparqlClient: new SparqlClient({
       endpointUrl:
         'http://85.214.211.33:9999/blazegraph/namespace/pep_test_repo/sparql',
       updateUrl:
         'http://85.214.211.33:9999/blazegraph/namespace/pep_test_repo/sparql',
     }),
+  }),
+  dataSources: () => ({
+    treeAPI: new TreeAPI(),
   }),
   engine: {
     apiKey: process.env.ENGINE_API_KEY,
