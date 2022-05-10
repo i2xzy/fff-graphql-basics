@@ -35,20 +35,20 @@ export const cladeReducer = async (
 
     return {
       ...acc,
-      id: item.id.value,
-      name: item.name.value,
+      id: item.id?.value,
+      name: item.name?.value,
       children,
       attributes: {
         ...acc.attributes,
-        id: item.id.value,
-        hasChildren: item.hasChildren.value === 'true',
-        parentId: item.parentId.value,
+        id: item.id?.value,
+        hasChildren: item.hasChildren?.value === 'true',
+        parentId: item.parentId?.value,
         attributes: [
-          { name: 'isFlying', value: item.isFlying.value === 'true' },
+          { name: 'isFlying', value: item.isFlying?.value === 'true' },
         ],
-        rank: item.rank.value,
+        rank: item.rank?.value,
         source: item.source
-          ? uniq([...(acc.attributes.source || []), item.source.value])
+          ? uniq([...(acc.attributes.source || []), item.source?.value])
           : [],
       },
     };
