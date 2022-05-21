@@ -27,6 +27,8 @@
     "babel-jest": "^27.5.1",
     "dotenv": "^8.2.0",
     "esm": "^3.2.25",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^2.1.2",
     "lodash": "^4.17.21",
     "ncp": "^2.0.0",
     "sparql-http-client": "^2.4.0"
