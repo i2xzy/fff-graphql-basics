@@ -6,7 +6,7 @@ type Node = {
 
 type Clade = {
   name?: string;
-  children?: Clade[];
+  children: Clade[];
   attributes: {
     id: string;
     hasChildren?: boolean;
@@ -18,7 +18,7 @@ type Clade = {
 
 export const cladeReducer = async (
   clade: Node[],
-  getNode: (id?: string) => Promise<Node[]>,
+  getNode: (id: string) => Promise<Node[]>,
   depth = 3
 ): Promise<Clade> => {
   const result = clade.reduce((acc, item) => {
