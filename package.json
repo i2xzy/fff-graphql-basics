@@ -23,7 +23,7 @@
     "@babel/core": "^7.17.5",
     "@babel/preset-env": "^7.16.11",
     "apollo-datasource-rest": "^0.6.9",
-    "apollo-server": "^2.14.2",
+    "apollo-server": "^2.25.3",
     "babel-jest": "^27.5.1",
     "dotenv": "^8.2.0",
     "esm": "^3.2.25",
