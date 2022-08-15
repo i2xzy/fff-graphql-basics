@@ -1,4 +1,4 @@
-import { cladeReducer } from './cladeReducer';
+import cladeReducer from './cladeReducer';
 
 describe('cladeReducer', () => {
   it('no children', () => {
@@ -11,20 +11,27 @@ describe('cladeReducer', () => {
         children: undefined,
         hasChildren: { value: 'false' },
         isFlying: { value: 'true' },
+        rank: { value: 'class' },
       },
     ];
 
     const result = {
       id: '81461',
       name: 'Aves',
-      hasChildren: false,
-      parentId: '664351',
-      attributes: [{ name: 'isFlying', value: true }],
-      source: ['irmng:1142'],
       children: [],
+      attributes: {
+        id: '81461',
+        hasChildren: false,
+        parentId: '664351',
+        characteristics: [{ name: 'isFlying', value: true }],
+        rank: 'class',
+        source: ['irmng:1142'],
+      },
     };
 
-    expect(cladeReducer(node, async () => node)).resolves.toStrictEqual(result);
+    return expect(cladeReducer(node, async () => node)).resolves.toStrictEqual(
+      result
+    );
   });
 
   it('1 child', () => {
@@ -37,24 +44,33 @@ describe('cladeReducer', () => {
         children: { value: '3601096' },
         hasChildren: { value: 'true' },
         isFlying: { value: 'true' },
+        rank: { value: 'class' },
       },
     ];
 
     const result = {
       id: '81461',
       name: 'Aves',
-      hasChildren: true,
-      parentId: '664351',
-      attributes: [{ name: 'isFlying', value: true }],
-      source: ['irmng:1142'],
+      attributes: {
+        id: '81461',
+        hasChildren: true,
+        parentId: '664351',
+        characteristics: [{ name: 'isFlying', value: true }],
+        rank: 'class',
+        source: ['irmng:1142'],
+      },
       children: [
         {
           id: '3601096',
           name: 'Neognathes',
-          parentId: '81461',
-          hasChildren: false,
-          attributes: [{ name: 'isFlying', value: true }],
-          source: [],
+          attributes: {
+            id: '3601096',
+            hasChildren: false,
+            parentId: '81461',
+            characteristics: [{ name: 'isFlying', value: true }],
+            rank: undefined,
+            source: [],
+          },
           children: [],
         },
       ],
@@ -72,7 +88,7 @@ describe('cladeReducer', () => {
       },
     ];
 
-    expect(cladeReducer(node, getNode)).resolves.toStrictEqual(result);
+    return expect(cladeReducer(node, getNode)).resolves.toStrictEqual(result);
   });
 
   it('2 children', () => {
@@ -100,27 +116,39 @@ describe('cladeReducer', () => {
     const result = {
       id: '81461',
       name: 'Aves',
-      hasChildren: true,
-      parentId: '664351',
-      attributes: [{ name: 'isFlying', value: true }],
-      source: ['irmng:1142'],
+      attributes: {
+        id: '81461',
+        hasChildren: true,
+        parentId: '664351',
+        characteristics: [{ name: 'isFlying', value: true }],
+        rank: undefined,
+        source: ['irmng:1142'],
+      },
       children: [
         {
           id: '3601096',
           name: 'Neognathes',
-          parentId: '81461',
-          hasChildren: false,
-          attributes: [{ name: 'isFlying', value: true }],
-          source: [],
+          attributes: {
+            id: '3601096',
+            hasChildren: false,
+            parentId: '81461',
+            characteristics: [{ name: 'isFlying', value: true }],
+            rank: undefined,
+            source: [],
+          },
           children: [],
         },
         {
           id: '3601097',
           name: 'Paeleognathes',
-          parentId: '81461',
-          hasChildren: false,
-          attributes: [{ name: 'isFlying', value: true }],
-          source: [],
+          attributes: {
+            id: '3601097',
+            hasChildren: false,
+            parentId: '81461',
+            characteristics: [{ name: 'isFlying', value: true }],
+            rank: undefined,
+            source: [],
+          },
           children: [],
         },
       ],
@@ -138,7 +166,7 @@ describe('cladeReducer', () => {
       },
     ];
 
-    expect(cladeReducer(node, getNode)).resolves.toStrictEqual(result);
+    return expect(cladeReducer(node, getNode)).resolves.toStrictEqual(result);
   });
 
   it('only return 1 generation', () => {
@@ -166,10 +194,14 @@ describe('cladeReducer', () => {
     const result = {
       id: '81461',
       name: 'Aves',
-      hasChildren: true,
-      parentId: '664351',
-      attributes: [{ name: 'isFlying', value: true }],
-      source: ['irmng:1142'],
+      attributes: {
+        id: '81461',
+        hasChildren: true,
+        parentId: '664351',
+        characteristics: [{ name: 'isFlying', value: true }],
+        rank: undefined,
+        source: ['irmng:1142'],
+      },
       children: [],
     };
 
@@ -185,6 +217,8 @@ describe('cladeReducer', () => {
       },
     ];
 
-    expect(cladeReducer(node, getNode, 1)).resolves.toStrictEqual(result);
+    return expect(cladeReducer(node, getNode, 1)).resolves.toStrictEqual(
+      result
+    );
   });
 });

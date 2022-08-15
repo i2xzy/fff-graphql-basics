@@ -1,15 +1,7 @@
 import { PREFIXES } from '../../lib/sparql-queries';
-import { cladeReducer } from './cladeReducer';
-
-const QUERY_PROPERTIES = `
-  ${PREFIXES}
-  SELECT DISTINCT ?property ?value WHERE {
-    ?s ?property ?value .
-  } LIMIT 100
-`;
+import cladeReducer from './cladeReducer';
 
 const tree2Resolver = async (_, { id: rootId }, { sparqlClient }) => {
-  console.log(rootId);
   const getClade = async (id: string, hasLineage?: boolean) => {
     const QUERY_CLADE = `
       ${PREFIXES}
