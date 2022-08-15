@@ -21,7 +21,6 @@ class TreeAPI extends RESTDataSource {
       node_id: id,
       include_lineage: true,
     });
-    console.log(response);
     return this.cladeReducer(response);
   }
 
@@ -30,7 +29,10 @@ class TreeAPI extends RESTDataSource {
       name: value,
       // include_suppressed: true,
     });
-    return response.map(result => this.searchResultReducer(result));
+    return response.map(result => ({
+      id: `ott${result.ott_id}`,
+      name: result.unique_name,
+    }));
   }
 
   async mrca({ clade1, clade2 }) {
@@ -78,13 +80,6 @@ class TreeAPI extends RESTDataSource {
       },
       children:
         clade.children && clade.children.map(node => this.nodeReducer(node)),
-    };
-  }
-
-  searchResultReducer(result) {
-    return {
-      id: `ott${result.ott_id}`,
-      name: result.unique_name,
     };
   }
 }

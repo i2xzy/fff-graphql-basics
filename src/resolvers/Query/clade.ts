@@ -2,10 +2,7 @@ import { uniq } from 'lodash';
 import { PREFIXES } from '../../lib/sparql-queries';
 
 const cladeResolver = async (_, { id }, { sparqlClient }) => {
-  console.log('clade');
-  console.log({ id });
-
-  const getClade = async (id: string) => {
+  const getClade = async () => {
     const QUERY_CLADE = `
       ${PREFIXES}
       SELECT ?id ?name ?rank ?isFlying ?parentId ?source ?imageUrl
@@ -26,13 +23,12 @@ const cladeResolver = async (_, { id }, { sparqlClient }) => {
     return sparqlClient.query.select(QUERY_CLADE);
   };
 
-  const bindings = await getClade(id);
+  const bindings = await getClade();
 
   if (!bindings || !bindings.length) return null;
 
-  const result = bindings.reduce((acc, item) => {
-    console.log(item);
-    return {
+  const result = bindings.reduce(
+    (acc, item) => ({
       ...acc,
       name: item.name.value,
       id: item.id.value,
@@ -45,8 +41,9 @@ const cladeResolver = async (_, { id }, { sparqlClient }) => {
       sources: item.source
         ? uniq([...(acc.source || []), item.source.value])
         : [],
-    };
-  }, {});
+    }),
+    {}
+  );
 
   return result;
 };
