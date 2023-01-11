@@ -21,6 +21,13 @@ export default gql`
     value: Boolean
   }
 
+  type NodeBasic {
+    id: ID
+    name: String
+    extant: Boolean
+    leaves: Int
+  }
+
   type Attributes {
     id: ID
     rank: String
@@ -28,7 +35,7 @@ export default gql`
     hasChildren: Boolean
     leaves: Int
     synonyms: [String]
-    lineage: [String]
+    lineage: [NodeBasic]
     parentId: ID
     sources: [String]
     characteristics: [Characteristic]
@@ -49,10 +56,11 @@ export default gql`
     hasChildren: Boolean
     leaves: Int
     synonyms: [String]
-    lineage: [Clade]
+    lineage: [NodeBasic]
     parentId: ID
     sources: [String]
     characteristics: [Characteristic]
     imageUrl: String
+    children: [NodeBasic]
   }
 `;

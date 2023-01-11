@@ -1,9 +1,13 @@
 import { ApolloServer } from 'apollo-server';
 import SparqlClient from 'sparql-http-client/ParsingClient';
+import * as dotenv from 'dotenv';
 import typeDefs from './types';
 import resolvers from './resolvers';
 
 import TreeAPI from './data/tree';
+import GithubAPI from './data/github';
+
+dotenv.config();
 
 const server = new ApolloServer({
   typeDefs,
@@ -19,6 +23,7 @@ const server = new ApolloServer({
   }),
   dataSources: () => ({
     treeAPI: new TreeAPI(),
+    githubAPI: new GithubAPI(),
   }),
   engine: {
     apiKey: process.env.ENGINE_API_KEY,

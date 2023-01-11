@@ -6,6 +6,8 @@ export default gql`
     updateClade(id: ID!, data: CladeInput!): MutationResponse
     moveClade(id: ID!, newParentId: ID!): MutationResponse
     deleteClade(id: ID!): MutationResponse
+
+    createNodeFiles(id: ID!): MutationResponse
   }
 
   type MutationResponse {
