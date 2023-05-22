@@ -1,29 +1,36 @@
 import { ApolloServer } from 'apollo-server';
-import SparqlClient from 'sparql-http-client/ParsingClient';
 import * as dotenv from 'dotenv';
+import jwt from 'jsonwebtoken';
 import typeDefs from './types';
 import resolvers from './resolvers';
 
 import TreeAPI from './data/tree';
 import GithubAPI from './data/github';
+import WikiSpeciesApi from './data/wikispecies';
+import GbifApi from './data/gbif';
 
 dotenv.config();
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: ({ req }) => ({
-    token: req.headers.authorization || '',
-    sparqlClient: new SparqlClient({
-      endpointUrl:
-        'http://85.214.211.33:9999/blazegraph/namespace/pep_test_repo/sparql',
-      updateUrl:
-        'http://85.214.211.33:9999/blazegraph/namespace/pep_test_repo/sparql',
-    }),
-  }),
+  context: ({ req }) => {
+    const token = req.headers.authorization?.split(' ')[1] || '';
+    const decoded = jwt.decode(token, { json: true });
+    const isEditor = decoded?.['cognito:groups']?.includes('editor');
+    const isDevTeam = decoded?.['cognito:groups']?.includes('devTeam');
+    return {
+      token,
+      email: decoded?.email || '',
+      isEditor,
+      isDevTeam,
+    };
+  },
   dataSources: () => ({
     treeAPI: new TreeAPI(),
     githubAPI: new GithubAPI(),
+    wikiSpeciesAPI: new WikiSpeciesApi(),
+    gbifAPI: new GbifApi(),
   }),
   engine: {
     apiKey: process.env.ENGINE_API_KEY,

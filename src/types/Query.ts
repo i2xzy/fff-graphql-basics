@@ -6,10 +6,9 @@ export default gql`
     clade(id: ID!): Clade
     search(value: String!): [SearchResult]
     mrca(clade1: String!, clade2: String!): MrcaResult
+    images(name: String!): [Image]
 
     # sparql
-    tree2(id: ID, depth: Int): Node
-    clade2(id: ID!): Clade
     search2(value: String!): [SearchResult]
     mrca2(clade1: String!, clade2: String!): MrcaResult
   }
@@ -22,5 +21,12 @@ export default gql`
   type MrcaResult {
     id: ID
     name: String
+  }
+
+  type Image {
+    title: String
+    url: String
+    width: Int
+    height: Int
   }
 `;

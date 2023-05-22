@@ -10,22 +10,32 @@ const fileContentReducer = (raw: string) => {
   return parse(buffer.toString());
 };
 
+const getFoldersFromId = (id: string) =>
+  id
+    .substring(id.length - 6)
+    .match(/.{1,2}/g)
+    .join('/');
+
 class GithubAPI extends RESTDataSource {
+  REPO: string;
+
   octokit: Octokit;
 
-  constructor() {
+  constructor(repo?: string) {
     super();
+    this.REPO = repo || REPO;
     this.baseURL = 'https://api.github.com/';
     this.octokit = new Octokit({
       auth: process.env.GITHUB_ACCESS_TOKEN,
     });
   }
 
-  async getFile({ path }) {
+  async getFile({ ref = 'main', path }: { ref: string; path: string }) {
     try {
       const { data } = await this.octokit.repos.getContent({
         owner: OWNER,
-        repo: REPO,
+        repo: this.REPO,
+        ref,
         path,
         type: 'file',
       });
@@ -41,96 +51,161 @@ class GithubAPI extends RESTDataSource {
     }
   }
 
-  async getTreeFile({ id }) {
-    const data = await this.getFile({ path: `${id}-tree.yml` });
+  async getTreeFile({ branch, id }: { branch: string; id: string }) {
+    const data = await this.getFile({
+      ref: branch,
+      path: `trees/${getFoldersFromId(id)}/${id}.yml`,
+    });
     if (data && 'content' in data) {
       return fileContentReducer(data.content);
     }
     return null;
   }
 
-  async getCladeFile({ id }) {
-    const data = await this.getFile({ path: `${id}-info.yml` });
+  async getCladeFile({ branch, id }: { branch: string; id: string }) {
+    const data = await this.getFile({
+      ref: branch,
+      path: `nodes/${getFoldersFromId(id)}/${id}.yml`,
+    });
     if (data && 'content' in data) {
       return fileContentReducer(data.content);
     }
     return null;
   }
 
-  async getCladeFileSha({ id }) {
-    const data = await this.getFile({ path: `${id}-info.yml` });
+  async getFileSha({ ref, path }: { ref: string; path: string }) {
+    const data = await this.getFile({ ref, path });
     if (data && 'sha' in data) {
       return data.sha;
     }
     return null;
   }
 
-  async writeNodeFile({ data }) {
-    const sha = await this.getCladeFileSha({ id: data.id });
+  async upsertFile({
+    path,
+    data,
+    branch,
+  }: {
+    path: string;
+    data: any;
+    branch: string;
+  }) {
+    const sha = await this.getFileSha({ ref: branch, path });
 
     const content = stringify(data, { directives: true });
     const buffer = Buffer.from(content);
     const base64data = buffer.toString('base64');
-    const response = await this.octokit.repos.createOrUpdateFileContents({
-      owner: OWNER,
-      repo: REPO,
-      path: `${data.id}-info.yml`,
-      message: `${sha ? 'Update' : 'Create'} ${data.id}-info.yml`,
-      content: base64data,
-      sha,
-      committer: {
-        name: 'phylogeny-explorer',
-        email: 'yitzchokr@live.com',
-      },
-      author: {
-        name: 'phylogeny-explorer',
-        email: 'yitzchokr@live.com',
-      },
-    });
-    return response;
+
+    try {
+      const { data: file } =
+        await this.octokit.repos.createOrUpdateFileContents({
+          owner: OWNER,
+          repo: this.REPO,
+          branch,
+          path,
+          message: `${sha ? 'Update' : 'Create'} ${path}`,
+          content: base64data,
+          sha,
+        });
+      return file;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   }
 
-  // write each file in series using array reduce
-  async writeNodeFiles({ files }) {
-    const result = await files.reduce(async (acc, file) => {
-      const response = await acc;
-      const data = await this.writeNodeFile({ data: file });
-      return [...response, data];
-    }, Promise.resolve([]));
-    return result;
+  async upsertTreeFile({
+    id,
+    data,
+    branch,
+  }: {
+    id: string;
+    data: any;
+    branch: string;
+  }) {
+    const path = `trees/${getFoldersFromId(id)}/${id}.yml`;
+    return this.upsertFile({ path, data, branch });
   }
 
-  async createBranch(branchName: string, sha: string) {
+  async upsertNodeFile({
+    id,
+    data,
+    branch,
+  }: {
+    id: string;
+    data: any;
+    branch: string;
+  }) {
+    const path = `nodes/${getFoldersFromId(id)}/${id}.yml`;
+    return this.upsertFile({ path, data, branch });
+  }
+
+  async createBranch({ branch, sha }: { branch: string; sha: string }) {
     const response = await this.octokit.git.createRef({
       owner: OWNER,
-      repo: REPO,
-      ref: `refs/heads/${branchName}`,
+      repo: this.REPO,
+      ref: `refs/heads/${branch}`,
       sha,
     });
     return response.data;
   }
 
-  async getOrCreateBranch(branchName: string) {
+  async getBranch({ branch }: { branch: string }) {
+    const response = await this.octokit.repos.getBranch({
+      owner: OWNER,
+      repo: this.REPO,
+      branch,
+    });
+    return response.data.commit.sha;
+  }
+
+  async hasBranch({ branch }: { branch: string }) {
     try {
-      // try to get the branch
-      const response = await this.octokit.repos.getBranch({
-        owner: OWNER,
-        repo: REPO,
-        branch: branchName,
-      });
-      return response.data.commit.sha;
+      await this.getBranch({ branch });
+      return true;
+    } catch (error) {
+      if (error.status === 404) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  async mergeBranch({ base, head }: { base: string; head: string }) {
+    const response = await this.octokit.repos.merge({
+      owner: OWNER,
+      repo: this.REPO,
+      base,
+      head,
+      commit_message: `Merge ${head} into ${base}}`,
+    });
+    return response.data?.sha;
+  }
+
+  async getUpdatedBranch({ branch }: { branch: string }) {
+    const sha = await this.getBranch({ branch });
+    // try to rebase main into the branch
+    try {
+      const updatedSha = await this.mergeBranch({ base: branch, head: 'main' });
+      return updatedSha || sha;
+    } catch (error) {
+      // if the rebase fails, it means that there are conflicts
+      console.error(error);
+      // to do: handle conflicts
+      return sha;
+    }
+  }
+
+  async getOrCreateBranch({ branch }: { branch: string }) {
+    // try to get the branch
+    try {
+      const sha = await this.getUpdatedBranch({ branch });
+      return sha;
     } catch (error) {
       // if the branch does not exist, create a new one
       if (error.status === 404) {
-        const main = await this.octokit.repos.getBranch({
-          owner: OWNER,
-          repo: REPO,
-          branch: 'main',
-        });
-        const response = await this.createBranch(
-          branchName,
-          main.data.commit.sha
-        );
+        const mainSha = await this.getBranch({ branch: 'main' });
+        const response = await this.createBranch({ branch, sha: mainSha });
         return response.object.sha;
       }
       // re-throw the error if it is not a 404 error
@@ -138,36 +213,23 @@ class GithubAPI extends RESTDataSource {
     }
   }
 
-  static createBlob(file) {
-    const folders = file.id
-      .substring(file.id.length - 6)
-      .match(/.{1,2}/g)
-      .join('/');
-
-    const content = stringify(file, { directives: true });
-
-    return {
-      path: `${folders}/${file.id}-info.yml`,
-      mode: '100644',
-      type: 'blob',
-      content,
-    };
-  }
-
-  async updateMultipleFiles(branchName, sha, files) {
-    const tree = files.map(GithubAPI.createBlob);
-    console.log({ tree });
+  async updateMultipleFiles(branchName: string, sha: string, files: any[]) {
     const treeResponse = await this.octokit.git.createTree({
       owner: OWNER,
-      repo: REPO,
+      repo: this.REPO,
       base_tree: sha,
-      tree: files.map(GithubAPI.createBlob),
+      tree: files.map(file => ({
+        path: `nodes/${getFoldersFromId(file.id)}/${file.id}.yml`,
+        mode: '100644',
+        type: 'blob',
+        content: stringify(file, { directives: true }),
+      })),
     });
 
     // create a new commit with the updated tree
     const commitResponse = await this.octokit.git.createCommit({
       owner: OWNER,
-      repo: REPO,
+      repo: this.REPO,
       message: 'Updating multiple files',
       tree: treeResponse.data.sha,
       parents: [sha],
@@ -176,7 +238,7 @@ class GithubAPI extends RESTDataSource {
     // update the branch to point to the new commit
     await this.octokit.git.updateRef({
       owner: OWNER,
-      repo: REPO,
+      repo: this.REPO,
       ref: `heads/${branchName}`,
       sha: commitResponse.data.sha,
     });

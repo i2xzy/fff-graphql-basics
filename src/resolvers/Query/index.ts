@@ -1,19 +1,19 @@
-import tree2 from './tree2';
+import tree from './tree';
 import search2 from './search2';
 import mrca2 from './mrca2';
-import cladeResolver from './clade';
+import clade from './clade';
 
 export default {
-  tree: (_, { id, depth }, { dataSources }) =>
-    dataSources.treeAPI.getTree({ id, depth }),
-  clade: (_, { id }, { dataSources }) => dataSources.treeAPI.getClade({ id }),
+  tree,
+  clade,
   search: (_, { value }, { dataSources }) =>
     dataSources.treeAPI.searchClade({ value }),
   mrca: (_, { clade1, clade2 }, { dataSources }) =>
     dataSources.treeAPI.mrca({ clade1, clade2 }),
 
-  tree2,
-  clade2: cladeResolver,
+  images: (_, { name }, { dataSources }) =>
+    dataSources.wikiSpeciesAPI.findImagesByName({ name }),
+
   search2,
   mrca2,
 };

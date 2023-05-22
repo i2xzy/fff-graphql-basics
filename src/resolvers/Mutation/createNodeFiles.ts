@@ -1,62 +1,21 @@
-interface Node {
-  id: string;
-  name: string;
-  children?: Node[];
-  attributes?: any;
-}
+import getNodes from '../../lib/getNode';
+import { ContextType } from '../../lib/types';
 
-// get list of nodes from tree
-const getNodes = (data: Node): Node[] =>
-  data.children?.reduce((acc, item) => {
-    const lineage = [
-      { id: data.id, name: data.name },
-      ...(data.attributes.lineage || []),
-    ];
-    const children = item.children
-      ? getNodes({ ...item, attributes: { ...item.attributes, lineage } })
-      : [];
-    return [
-      ...acc,
-      {
-        id: item.id,
-        name: item.name,
-        ...item.attributes,
-        parentId: data.id,
-        lineage,
-        children:
-          item.children?.map(child => ({ id: child.id, name: child.name })) ||
-          [],
-      },
-      ...children,
-    ];
-  }, []);
-
-const createNodeFiles = async (_, { id }, { dataSources }) => {
-  const data = await dataSources.githubAPI.getTreeFile({ id });
+const createNodeFiles = async (
+  _: any,
+  { id }: { id: string },
+  { dataSources }: ContextType
+) => {
+  const branch = 'test-branch';
+  const data = await dataSources.githubAPI.getTreeFile({ branch, id });
   console.log(data);
 
   const nodes = getNodes(data);
   console.log(nodes);
 
-  await dataSources.githubAPI.writeNodeFiles({
-    files: [
-      {
-        id: data.id,
-        name: data.name,
-        ...data.attributes,
-        parentId: data.attributes.lineage[0]?.id,
-        children: data.children.map(child => ({
-          id: child.id,
-          name: child.name,
-        })),
-      },
-      ...nodes,
-    ],
-  });
+  const sha = await dataSources.githubAPI.getOrCreateBranch({ branch });
 
-  // const sha = await dataSources.githubAPI.getOrCreateBranch('test-branch');
-
-  // await dataSources.githubAPI.updateMultipleFiles('test-branch', sha, nodes);
+  await dataSources.githubAPI.updateMultipleFiles(branch, sha, nodes);
 
   return { success: true };
 };
